@@ -57,3 +57,14 @@
 - [x] iOS setup complete – user to test on macOS + Xcode
 - [x] Android setup complete – user to test with Android Studio
 - [x] Document app store submission process (APP_STORE_GUIDE.md)
+
+
+## App Store Submission Prep
+- [x] Write Capacitor Cloud Build guide for Android (CAPACITOR_CLOUD_BUILD_GUIDE.md)
+- [x] Write iOS App Store submission guide (IOS_APP_STORE_GUIDE.md)
+- [ ] Create app store metadata assets (screenshots, feature graphics)
+- [ ] Push code to GitHub (user to do)
+- [ ] Set up Capacitor Cloud and build Android AAB (user to do)
+- [ ] Create Apple Developer account and build iOS archive (user to do on macOS)
+- [ ] Submit Android to Google Play Store (user to do)
+- [ ] Submit iOS to Apple App Store (user to do)
