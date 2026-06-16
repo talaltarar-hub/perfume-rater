@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { and, avg, count, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import { InsertUser, perfumes, ratings, users, type InsertPerfume, type InsertRating } from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -18,75 +17,174 @@ export async function getDb() {
   return _db;
 }
 
+// ─── User helpers ────────────────────────────────────────────────────────────
+
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
+  if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
+  if (!db) { console.warn("[Database] Cannot upsert user: database not available"); return; }
 
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
+  const values: InsertUser = { openId: user.openId };
+  const updateSet: Record<string, unknown> = {};
+  const textFields = ["name", "email", "loginMethod"] as const;
+  type TextField = (typeof textFields)[number];
+  const assignNullable = (field: TextField) => {
+    const value = user[field];
+    if (value === undefined) return;
+    const normalized = value ?? null;
+    values[field] = normalized;
+    updateSet[field] = normalized;
+  };
+  textFields.forEach(assignNullable);
+  if (user.lastSignedIn !== undefined) { values.lastSignedIn = user.lastSignedIn; updateSet.lastSignedIn = user.lastSignedIn; }
+  if (user.role !== undefined) { values.role = user.role; updateSet.role = user.role; }
+  else if (user.openId === ENV.ownerOpenId) { values.role = "admin"; updateSet.role = "admin"; }
+  if (!values.lastSignedIn) values.lastSignedIn = new Date();
+  if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
 
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
+  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// ─── Perfume helpers ──────────────────────────────────────────────────────────
+
+export async function listPerfumesWithScores(sortBy: "top" | "newest" = "newest") {
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db
+    .select({
+      id: perfumes.id,
+      name: perfumes.name,
+      brand: perfumes.brand,
+      description: perfumes.description,
+      notes: perfumes.notes,
+      imageUrl: perfumes.imageUrl,
+      createdAt: perfumes.createdAt,
+      avgScore: sql<number>`COALESCE(AVG(${ratings.score}), 0)`.as("avgScore"),
+      voteCount: sql<number>`COUNT(${ratings.id})`.as("voteCount"),
+    })
+    .from(perfumes)
+    .leftJoin(ratings, eq(ratings.perfumeId, perfumes.id))
+    .groupBy(perfumes.id);
+
+  if (sortBy === "top") {
+    rows.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0));
+  } else {
+    rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return rows;
+}
+
+export async function getPerfumeById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(perfumes).where(eq(perfumes.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getPerfumeWithScore(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const rows = await db
+    .select({
+      id: perfumes.id,
+      name: perfumes.name,
+      brand: perfumes.brand,
+      description: perfumes.description,
+      notes: perfumes.notes,
+      imageUrl: perfumes.imageUrl,
+      createdAt: perfumes.createdAt,
+      updatedAt: perfumes.updatedAt,
+      avgScore: sql<number>`COALESCE(AVG(${ratings.score}), 0)`.as("avgScore"),
+      voteCount: sql<number>`COUNT(${ratings.id})`.as("voteCount"),
+    })
+    .from(perfumes)
+    .leftJoin(ratings, eq(ratings.perfumeId, perfumes.id))
+    .where(eq(perfumes.id, id))
+    .groupBy(perfumes.id)
+    .limit(1);
+
+  return rows.length > 0 ? rows[0] : undefined;
+}
+
+export async function insertPerfume(data: InsertPerfume) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(perfumes).values(data);
+  return result;
+}
+
+export async function deletePerfumeById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(ratings).where(eq(ratings.perfumeId, id));
+  await db.delete(perfumes).where(eq(perfumes.id, id));
+}
+
+// ─── Rating helpers ───────────────────────────────────────────────────────────
+
+export async function getRatingsForPerfume(perfumeId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db
+    .select({
+      id: ratings.id,
+      score: ratings.score,
+      review: ratings.review,
+      createdAt: ratings.createdAt,
+      updatedAt: ratings.updatedAt,
+      userId: ratings.userId,
+      userName: users.name,
+    })
+    .from(ratings)
+    .leftJoin(users, eq(users.id, ratings.userId))
+    .where(eq(ratings.perfumeId, perfumeId))
+    .orderBy(desc(ratings.updatedAt));
+
+  return rows;
+}
+
+export async function getUserRatingForPerfume(userId: number, perfumeId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(ratings)
+    .where(and(eq(ratings.userId, userId), eq(ratings.perfumeId, perfumeId)))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function upsertRating(data: { userId: number; perfumeId: number; score: number; review?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getUserRatingForPerfume(data.userId, data.perfumeId);
+
+  if (existing) {
+    await db
+      .update(ratings)
+      .set({ score: data.score, review: data.review ?? null, updatedAt: new Date() })
+      .where(and(eq(ratings.userId, data.userId), eq(ratings.perfumeId, data.perfumeId)));
+  } else {
+    await db.insert(ratings).values({
+      userId: data.userId,
+      perfumeId: data.perfumeId,
+      score: data.score,
+      review: data.review ?? null,
+    });
+  }
+}
