@@ -16,34 +16,30 @@ function PerfumeCard({ perfume }: { perfume: any }) {
   return (
     <Link href={`/perfumes/${perfume.id}`}>
       <div className="luxury-card group cursor-pointer rounded-xl overflow-hidden border border-border/60 bg-card h-full flex flex-col">
-        {/* Image - Show perfume name */}
-        <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-secondary to-secondary/80 flex items-center justify-center p-6">
-          <div className="text-center">
-            <p className="text-sm font-medium tracking-widest uppercase text-gold-dim mb-3">{perfume.brand}</p>
-            <h2 className="text-2xl font-bold text-foreground group-hover:text-gold transition-colors leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+        {/* Text-only card */}
+        <div className="relative p-6 flex flex-col gap-3 flex-1 bg-gradient-to-br from-secondary to-secondary/80 min-h-[300px] justify-center">
+          <div>
+            <p className="text-xs font-medium tracking-widest uppercase text-gold-dim mb-2">{perfume.brand}</p>
+            <h3
+              className="text-2xl font-bold leading-snug text-foreground group-hover:text-gold transition-colors"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
               {perfume.name}
-            </h2>
+            </h3>
           </div>
+
+          {perfume.description && (
+            <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+              {perfume.description}
+            </p>
+          )}
+
           {/* Score overlay */}
           <div className="absolute top-3 right-3">
             <ScoreRingInline score={Number(perfume.avgScore)} voteCount={Number(perfume.voteCount)} size="sm" />
           </div>
-        </div>
 
-        {/* Info */}
-        <div className="p-4 flex flex-col gap-1.5 flex-1">
-          <p className="text-xs font-medium tracking-widest uppercase text-gold-dim">{perfume.brand}</p>
-          <h3
-            className="text-base font-semibold leading-snug text-foreground group-hover:text-gold transition-colors"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            {perfume.name}
-          </h3>
-          {perfume.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
-              {perfume.description}
-            </p>
-          )}
+          {/* Review count */}
           <div className="mt-auto pt-2 flex items-center gap-2">
             {Number(perfume.voteCount) > 0 ? (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -63,13 +59,7 @@ function PerfumeCard({ perfume }: { perfume: any }) {
 function PerfumeCardSkeleton() {
   return (
     <div className="rounded-xl overflow-hidden border border-border/60 bg-card">
-      <Skeleton className="aspect-[3/4] w-full" />
-      <div className="p-4 space-y-2">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-3 w-2/3" />
-      </div>
+      <Skeleton className="h-[300px] w-full" />
     </div>
   );
 }
@@ -92,118 +82,90 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none"
           style={{
             background: "radial-gradient(ellipse 80% 50% at 50% 0%, oklch(0.78 0.12 80 / 0.07), transparent)"
-          }} />
-        <div className="container text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/60 text-xs text-gold-dim mb-6"
-            style={{ background: "oklch(0.16 0.02 70 / 0.6)" }}>
-            <Sparkles className="w-3 h-3" />
-            Community-Curated Fragrance Reviews
+          }}
+        />
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Sparkles className="w-5 h-5 text-gold-dim" />
+            <span className="text-sm font-medium tracking-widest uppercase text-gold-dim">Community-Curated Fragrance Reviews</span>
           </div>
-          <h1
-            className="text-4xl md:text-6xl font-bold text-foreground mb-4 leading-tight"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
             Discover Your Next
             <br />
-            <span style={{ color: "var(--gold)" }}>Signature Scent</span>
+            <span className="text-gold">Signature Scent</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
+
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Explore the world's finest fragrances, rated and reviewed by a passionate community of perfume enthusiasts.
           </p>
         </div>
       </section>
 
-      <div className="gold-divider mx-8" />
-
       {/* Catalog */}
-      <section className="py-12 flex-1">
-        <div className="container">
-          {/* Header + Sort + Add Button */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+      <section className="flex-1 px-4 py-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2
-                className="text-2xl font-semibold text-foreground"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                {sortBy === "top" ? "Top Rated Fragrances" : "Fragrance Catalog"}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {isLoading ? "Loading…" : `${perfumes?.length ?? 0} fragrances`}
-              </p>
+              <h2 className="text-3xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>Fragrance Catalog</h2>
+              <p className="text-muted-foreground text-sm mt-1">{perfumes?.length || 0} fragrances</p>
             </div>
-            <div className="flex items-center gap-2">
-              {isAuthenticated && (
+
+            <div className="flex items-center gap-3">
+              {/* Sort toggle */}
+              <div className="flex gap-2 bg-secondary/50 p-1 rounded-lg border border-border/40">
                 <Button
-                  onClick={() => setAddModalOpen(true)}
-                  className="gap-2"
+                  variant={sortBy === "newest" ? "default" : "ghost"}
                   size="sm"
+                  onClick={() => setSortBy("newest")}
+                  className="gap-2"
                 >
+                  <Clock className="w-4 h-4" />
+                  Newest
+                </Button>
+                <Button
+                  variant={sortBy === "top" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSortBy("top")}
+                  className="gap-2"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Top Rated
+                </Button>
+              </div>
+
+              {/* Add perfume button */}
+              {isAuthenticated && (
+                <Button onClick={() => setAddModalOpen(true)} className="gap-2">
                   <Plus className="w-4 h-4" />
                   Add Perfume
                 </Button>
               )}
-              <div className="flex items-center gap-2 p-1 rounded-lg border border-border/60 bg-card">
-                <button
-                  onClick={() => setSortBy("newest")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    sortBy === "newest"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Clock className="w-3.5 h-3.5" />
-                  Newest
-                </button>
-                <button
-                  onClick={() => setSortBy("top")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    sortBy === "top"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  Top Rated
-                </button>
-              </div>
             </div>
           </div>
 
           {/* Grid */}
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-              {Array.from({ length: 10 }).map((_, i) => <PerfumeCardSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PerfumeCardSkeleton key={i} />
+              ))}
             </div>
           ) : perfumes && perfumes.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-              {perfumes.map((p) => <PerfumeCard key={p.id} perfume={p} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {perfumes.map((perfume) => (
+                <PerfumeCard key={perfume.id} perfume={perfume} />
+              ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="text-6xl mb-4 opacity-30">🌸</div>
-              <h3 className="text-xl font-semibold text-foreground mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-                No fragrances yet
-              </h3>
-              <p className="text-muted-foreground text-sm mb-6">
-                Be the first to add a perfume to Scentify!
-              </p>
-              {isAuthenticated && (
-                <Button onClick={() => setAddModalOpen(true)} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add First Perfume
-                </Button>
-              )}
+            <div className="text-center py-16">
+              <Sparkles className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-muted-foreground">No perfumes yet. Be the first to add one!</p>
             </div>
           )}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/40 py-8 mt-8">
-        <div className="container text-center text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} Scentify. A community for fragrance lovers.</p>
-        </div>
-      </footer>
 
       {/* Add Perfume Modal */}
       <AddPerfumeModal
