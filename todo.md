@@ -63,7 +63,7 @@
 - [x] Write Capacitor Cloud Build guide for Android (CAPACITOR_CLOUD_BUILD_GUIDE.md)
 - [x] Write iOS App Store submission guide (IOS_APP_STORE_GUIDE.md)
 - [x] Populate catalog with 10 sample perfumes
-- [ ] Push code to GitHub (user to do)
+- [ ] Push code to GitHub (guide: GITHUB_AND_LAUNCH_GUIDE.md – user to do)
 - [ ] Set up Capacitor Cloud and build Android AAB (user to do)
 - [ ] Create Apple Developer account and build iOS archive (user to do on macOS)
 - [ ] Submit Android to Google Play Store (user to do – currently waiting for approval)
