@@ -5,8 +5,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, Camera } from "lucide-react";
 import { toast } from "sonner";
+import { CameraCapture } from "./CameraCapture";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AddPerfumeModalProps {
   open: boolean;
@@ -21,6 +23,7 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
   const [imageUrl, setImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
 
   const submitMutation = trpc.perfumes.submit.useMutation({
     onSuccess: () => {
@@ -31,6 +34,7 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
       setImageUrl("");
       setImageFile(null);
       setImagePreview(null);
+      setShowCamera(false);
       onOpenChange(false);
       onSuccess?.();
     },
@@ -59,6 +63,12 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
       setImagePreview(e.target?.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCameraCapture = (imageData: string) => {
+    setImagePreview(imageData);
+    setShowCamera(false);
+    toast.success("Photo captured! 📸");
   };
 
   const handleRemoveImage = () => {
@@ -132,7 +142,12 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
 
           <div className="space-y-2">
             <Label>Perfume Image</Label>
-            {imagePreview ? (
+            {showCamera ? (
+              <CameraCapture
+                onCapture={handleCameraCapture}
+                onClose={() => setShowCamera(false)}
+              />
+            ) : imagePreview ? (
               <div className="relative w-full h-40 bg-muted rounded-lg overflow-hidden flex items-center justify-center">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                 <button
@@ -145,32 +160,62 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
                 </button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  disabled={submitMutation.isPending}
-                  className="hidden"
-                />
-              </label>
+              <Tabs defaultValue="upload" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload">Upload</TabsTrigger>
+                  <TabsTrigger value="camera">Camera</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="upload" className="space-y-2">
+                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      disabled={submitMutation.isPending}
+                      className="hidden"
+                    />
+                  </label>
+                </TabsContent>
+
+                <TabsContent value="camera" className="space-y-2">
+                  <div className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                    <div className="flex flex-col items-center justify-center">
+                      <Camera className="w-8 h-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground text-center">Take a photo of your perfume</p>
+                      <Button
+                        type="button"
+                        onClick={() => setShowCamera(true)}
+                        className="mt-4 gap-2"
+                        disabled={submitMutation.isPending}
+                      >
+                        <Camera className="w-4 h-4" />
+                        Open Camera
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl" className="text-xs">Or paste image URL</Label>
-              <Input
-                id="imageUrl"
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                disabled={submitMutation.isPending || !!imagePreview}
-              />
-            </div>
+
+            {!showCamera && !imagePreview && (
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl" className="text-xs">Or paste image URL</Label>
+                <Input
+                  id="imageUrl"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  disabled={submitMutation.isPending}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 justify-end pt-2">
