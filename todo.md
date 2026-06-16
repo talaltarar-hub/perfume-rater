@@ -38,3 +38,21 @@
 - [x] Vitest: perfumes.list returns sorted results
 - [x] Vitest: ratings.upsert requires auth
 - [x] Vitest: admin.addPerfume requires admin role
+
+
+## PWA Setup
+- [x] Create manifest.json with app metadata (name, icons, theme colors)
+- [x] Create service worker for offline support and caching
+- [x] Update index.html with manifest link and meta tags
+- [ ] Generate PWA icons (192x192, 512x512) – use design tool or online generator
+- [ ] Test PWA installation on mobile browser
+
+## Capacitor Setup
+- [x] Install Capacitor CLI and core packages
+- [x] Initialize Capacitor project
+- [x] Configure iOS and Android platforms
+- [x] Update capacitor.config.ts with app settings
+- [x] Build web assets for Capacitor
+- [ ] Test on iOS simulator (requires macOS + Xcode)
+- [ ] Test on Android emulator (requires Android Studio)
+- [x] Document app store submission process (APP_STORE_GUIDE.md)

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Scentify</string>
+    <string name="title_activity_main">Scentify</string>
+    <string name="package_name">com.scentify.app</string>
+    <string name="custom_url_scheme">com.scentify.app</string>
+</resources>
