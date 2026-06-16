@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddPerfumeModalProps {
@@ -19,6 +19,8 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
   const [brand, setBrand] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const submitMutation = trpc.perfumes.submit.useMutation({
     onSuccess: () => {
@@ -27,6 +29,8 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
       setBrand("");
       setDescription("");
       setImageUrl("");
+      setImageFile(null);
+      setImagePreview(null);
       onOpenChange(false);
       onSuccess?.();
     },
@@ -34,6 +38,33 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
       toast.error(error.message || "Failed to add perfume");
     },
   });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +76,7 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
       name: name.trim(),
       brand: brand.trim(),
       description: description.trim() || undefined,
-      imageUrl: imageUrl.trim() || "",
+      imageUrl: imagePreview || imageUrl.trim() || "",
     });
   };
 
@@ -100,16 +131,46 @@ export function AddPerfumeModal({ open, onOpenChange, onSuccess }: AddPerfumeMod
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              disabled={submitMutation.isPending}
-            />
-            <p className="text-xs text-muted-foreground">Optional: Link to a perfume bottle image</p>
+            <Label>Perfume Image</Label>
+            {imagePreview ? (
+              <div className="relative w-full h-40 bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                  disabled={submitMutation.isPending}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  disabled={submitMutation.isPending}
+                  className="hidden"
+                />
+              </label>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl" className="text-xs">Or paste image URL</Label>
+              <Input
+                id="imageUrl"
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                disabled={submitMutation.isPending || !!imagePreview}
+              />
+            </div>
           </div>
 
           <div className="flex gap-2 justify-end pt-2">
