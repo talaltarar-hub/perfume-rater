@@ -16,20 +16,14 @@ function PerfumeCard({ perfume }: { perfume: any }) {
   return (
     <Link href={`/perfumes/${perfume.id}`}>
       <div className="luxury-card group cursor-pointer rounded-xl overflow-hidden border border-border/60 bg-card h-full flex flex-col">
-        {/* Image */}
-        <div className="relative aspect-[3/4] overflow-hidden bg-secondary">
-          {perfume.imageUrl ? (
-            <img
-              src={perfume.imageUrl}
-              alt={perfume.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, oklch(0.18 0.02 70), oklch(0.22 0.03 80))" }}>
-              <span className="text-5xl opacity-40">🌸</span>
-            </div>
-          )}
+        {/* Image - Show perfume name */}
+        <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-secondary to-secondary/80 flex items-center justify-center p-6">
+          <div className="text-center">
+            <p className="text-sm font-medium tracking-widest uppercase text-gold-dim mb-3">{perfume.brand}</p>
+            <h2 className="text-2xl font-bold text-foreground group-hover:text-gold transition-colors leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              {perfume.name}
+            </h2>
+          </div>
           {/* Score overlay */}
           <div className="absolute top-3 right-3">
             <ScoreRingInline score={Number(perfume.avgScore)} voteCount={Number(perfume.voteCount)} size="sm" />
