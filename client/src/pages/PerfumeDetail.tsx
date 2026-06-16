@@ -26,22 +26,41 @@ function ReviewItem({ review }: { review: any }) {
   return (
     <div className="py-5 space-y-3">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="w-9 h-9 border border-border/60 flex-shrink-0">
-            <AvatarFallback
-              className="text-xs font-semibold"
-              style={{ background: "oklch(0.22 0.03 70)", color: "var(--gold)" }}
-            >
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium text-foreground">{review.userName ?? "Anonymous"}</p>
-            <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(review.updatedAt), { addSuffix: true })}
-            </p>
+        {review.userId ? (
+          <Link href={`/profile/${review.userId}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Avatar className="w-9 h-9 border border-border/60 flex-shrink-0">
+              <AvatarFallback
+                className="text-xs font-semibold"
+                style={{ background: "oklch(0.22 0.03 70)", color: "var(--gold)" }}
+              >
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium text-foreground hover:text-gold transition-colors">{review.userName ?? "Anonymous"}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(review.updatedAt), { addSuffix: true })}
+              </p>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Avatar className="w-9 h-9 border border-border/60 flex-shrink-0">
+              <AvatarFallback
+                className="text-xs font-semibold"
+                style={{ background: "oklch(0.22 0.03 70)", color: "var(--gold)" }}
+              >
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium text-foreground">{review.userName ?? "Anonymous"}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(review.updatedAt), { addSuffix: true })}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
         <div
           className="flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold flex-shrink-0"
           style={{ background: `${scoreColor}18`, color: scoreColor, border: `1px solid ${scoreColor}30` }}

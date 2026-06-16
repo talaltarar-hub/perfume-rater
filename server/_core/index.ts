@@ -34,8 +34,42 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Binary parser for file uploads
+  app.use("/api/upload-profile-image", express.raw({ type: "image/*", limit: "5mb" }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+
+  // Profile image upload endpoint (authenticated)
+  app.post("/api/upload-profile-image", async (req, res) => {
+    try {
+      // Check authentication via cookie
+      const cookie = req.headers.cookie;
+      if (!cookie || !cookie.includes("manus_session")) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Get file buffer from request
+      const buffer = req.body as Buffer;
+      if (!buffer || buffer.length === 0) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { storagePut } = await import("../storage");
+
+      // Upload to storage
+      const { url } = await storagePut(
+        `profile-images/${Date.now()}-profile.jpg`,
+        buffer,
+        "image/jpeg"
+      );
+
+      res.json({ url });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

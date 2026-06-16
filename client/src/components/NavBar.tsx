@@ -89,12 +89,16 @@ export function NavBar() {
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)} className="cursor-pointer">
+                  My Profile
+                </DropdownMenuItem>
                 {user?.role === "admin" && (
                   <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer">
                     <Crown className="w-4 h-4 mr-2" />
                     Admin Panel
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => logout.mutate()}
                   disabled={logout.isPending}

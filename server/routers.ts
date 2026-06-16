@@ -8,6 +8,14 @@ import {
   insertPerfume,
   listPerfumesWithScores,
   upsertRating,
+  getUserProfile,
+  upsertUserProfile,
+  getUserTopPerfumes,
+  addUserTopPerfume,
+  removeUserTopPerfume,
+  getProfileRatingsForUser,
+  getUserProfileRating,
+  upsertProfileRating,
 } from "./db";
 import { systemRouter } from "./_core/systemRouter";
 import { COOKIE_NAME } from "@shared/const";
@@ -96,6 +104,98 @@ export const appRouter = router({
           review: input.review,
         });
 
+        return { success: true };
+      }),
+  }),
+
+  profiles: router({
+    getProfile: publicProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        return getUserProfile(input.userId);
+      }),
+
+    updateProfile: protectedProcedure
+      .input(
+        z.object({
+          bio: z.string().max(1000).optional(),
+          profileImageUrl: z.string().url().optional().or(z.literal("")),
+          profileVideoUrl: z.string().url().optional().or(z.literal("")),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        await upsertUserProfile({
+          userId: ctx.user.id,
+          bio: input.bio ?? null,
+          profileImageUrl: input.profileImageUrl || null,
+          profileVideoUrl: input.profileVideoUrl || null,
+        });
+        return { success: true };
+      }),
+
+    getTopPerfumes: publicProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        return getUserTopPerfumes(input.userId);
+      }),
+
+    addTopPerfume: protectedProcedure
+      .input(
+        z.object({
+          perfumeId: z.number(),
+          position: z.number().int().min(1).max(5),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const existing = await getUserTopPerfumes(ctx.user.id);
+        if (existing.length >= 5 && !existing.some(p => p.perfumeId === input.perfumeId)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Maximum 5 top perfumes allowed" });
+        }
+        await addUserTopPerfume({
+          userId: ctx.user.id,
+          perfumeId: input.perfumeId,
+          position: input.position,
+        });
+        return { success: true };
+      }),
+
+    removeTopPerfume: protectedProcedure
+      .input(z.object({ perfumeId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await removeUserTopPerfume(ctx.user.id, input.perfumeId);
+        return { success: true };
+      }),
+
+    getProfileRatings: publicProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        return getProfileRatingsForUser(input.userId);
+      }),
+
+    getMyProfileRating: protectedProcedure
+      .input(z.object({ ratedUserId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        return getUserProfileRating(input.ratedUserId, ctx.user.id);
+      }),
+
+    upsertProfileRating: protectedProcedure
+      .input(
+        z.object({
+          ratedUserId: z.number(),
+          score: z.number().int().min(1).max(10),
+          review: z.string().max(2000).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        if (input.ratedUserId === ctx.user.id) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot rate your own profile" });
+        }
+        await upsertProfileRating({
+          ratedUserId: input.ratedUserId,
+          ratingUserId: ctx.user.id,
+          score: input.score,
+          review: input.review,
+        });
         return { success: true };
       }),
   }),

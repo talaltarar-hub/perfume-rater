@@ -7,12 +7,14 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import PerfumeDetail from "./pages/PerfumeDetail";
 import AdminPanel from "./pages/AdminPanel";
+import UserProfile from "./pages/UserProfile";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/perfumes/:id" component={PerfumeDetail} />
+      <Route path="/profile/:userId" component={UserProfile} />
       <Route path="/admin" component={AdminPanel} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

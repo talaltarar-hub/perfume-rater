@@ -75,3 +75,20 @@
 - [x] Create "Add Perfume" modal/form in frontend
 - [x] Add "Add Perfume" button to catalog page
 - [x] Test user perfume submission flow
+
+
+## User Profile System
+- [x] Update database schema: userProfiles table (bio, profileImage, profileVideo)
+- [x] Update database schema: userTopPerfumes table (user's top 5 perfumes)
+- [x] Update database schema: profileRatings table (community ratings on user choices)
+- [x] Create backend procedures for user profiles (get, update)
+- [x] Create backend procedures for top perfumes (get, add, remove)
+- [x] Create backend procedures for profile ratings (submit, get)
+- [x] Build user profile page (/profile/:userId)
+- [x] Build edit profile modal with image/video upload
+- [x] Add file upload endpoint for profile images (/api/upload-profile-image)
+- [x] Fix profile rating display to show 1-10 scale correctly
+- [x] Add profile links to review authors on perfume detail page
+- [x] Build profile rating UI (rate user's fragrance choices)
+- [x] Add profile link to navigation and user cards
+- [x] Test all profile features end-to-end

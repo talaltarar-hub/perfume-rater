@@ -1,6 +1,6 @@
 import { and, avg, count, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, perfumes, ratings, users, type InsertPerfume, type InsertRating } from "../drizzle/schema";
+import { InsertUser, perfumes, ratings, users, userProfiles, userTopPerfumes, profileRatings, type InsertPerfume, type InsertRating, type InsertUserProfile, type InsertUserTopPerfume, type InsertProfileRating } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -183,6 +183,118 @@ export async function upsertRating(data: { userId: number; perfumeId: number; sc
     await db.insert(ratings).values({
       userId: data.userId,
       perfumeId: data.perfumeId,
+      score: data.score,
+      review: data.review ?? null,
+    });
+  }
+}
+
+
+// ─── User Profile helpers ─────────────────────────────────────────────────────
+
+export async function getUserProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertUserProfile(data: InsertUserProfile) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getUserProfile(data.userId!);
+  if (existing) {
+    await db.update(userProfiles).set(data).where(eq(userProfiles.userId, data.userId!));
+  } else {
+    await db.insert(userProfiles).values(data);
+  }
+}
+
+export async function getUserTopPerfumes(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db
+    .select({
+      id: userTopPerfumes.id,
+      userId: userTopPerfumes.userId,
+      perfumeId: userTopPerfumes.perfumeId,
+      position: userTopPerfumes.position,
+      perfumeName: perfumes.name,
+      perfumeBrand: perfumes.brand,
+      perfumeImageUrl: perfumes.imageUrl,
+    })
+    .from(userTopPerfumes)
+    .leftJoin(perfumes, eq(perfumes.id, userTopPerfumes.perfumeId))
+    .where(eq(userTopPerfumes.userId, userId))
+    .orderBy(userTopPerfumes.position);
+
+  return rows;
+}
+
+export async function addUserTopPerfume(data: InsertUserTopPerfume) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(userTopPerfumes).values(data);
+}
+
+export async function removeUserTopPerfume(userId: number, perfumeId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(userTopPerfumes).where(and(eq(userTopPerfumes.userId, userId), eq(userTopPerfumes.perfumeId, perfumeId)));
+}
+
+export async function getProfileRatingsForUser(ratedUserId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db
+    .select({
+      id: profileRatings.id,
+      score: profileRatings.score,
+      review: profileRatings.review,
+      createdAt: profileRatings.createdAt,
+      ratingUserId: profileRatings.ratingUserId,
+      ratingUserName: users.name,
+    })
+    .from(profileRatings)
+    .leftJoin(users, eq(users.id, profileRatings.ratingUserId))
+    .where(eq(profileRatings.ratedUserId, ratedUserId))
+    .orderBy(desc(profileRatings.createdAt));
+
+  return rows;
+}
+
+export async function getUserProfileRating(ratedUserId: number, ratingUserId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(profileRatings)
+    .where(and(eq(profileRatings.ratedUserId, ratedUserId), eq(profileRatings.ratingUserId, ratingUserId)))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertProfileRating(data: { ratedUserId: number; ratingUserId: number; score: number; review?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getUserProfileRating(data.ratedUserId, data.ratingUserId);
+
+  if (existing) {
+    await db
+      .update(profileRatings)
+      .set({ score: data.score, review: data.review ?? null, updatedAt: new Date() })
+      .where(and(eq(profileRatings.ratedUserId, data.ratedUserId), eq(profileRatings.ratingUserId, data.ratingUserId)));
+  } else {
+    await db.insert(profileRatings).values({
+      ratedUserId: data.ratedUserId,
+      ratingUserId: data.ratingUserId,
       score: data.score,
       review: data.review ?? null,
     });
