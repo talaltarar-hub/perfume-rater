@@ -44,8 +44,8 @@
 - [x] Create manifest.json with app metadata (name, icons, theme colors)
 - [x] Create service worker for offline support and caching
 - [x] Update index.html with manifest link and meta tags
-- [ ] Generate PWA icons (192x192, 512x512) – use design tool or online generator
-- [ ] Test PWA installation on mobile browser
+- [x] Generate PWA icons (192x192, 512x512, maskable variants)
+- [x] Manifest + icons verified and built
 
 ## Capacitor Setup
 - [x] Install Capacitor CLI and core packages
@@ -53,6 +53,7 @@
 - [x] Configure iOS and Android platforms
 - [x] Update capacitor.config.ts with app settings
 - [x] Build web assets for Capacitor
+- [x] Sync web assets to iOS and Android projects
 - [ ] Test on iOS simulator (requires macOS + Xcode)
 - [ ] Test on Android emulator (requires Android Studio)
 - [x] Document app store submission process (APP_STORE_GUIDE.md)
