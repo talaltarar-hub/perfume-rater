@@ -54,6 +54,6 @@
 - [x] Update capacitor.config.ts with app settings
 - [x] Build web assets for Capacitor
 - [x] Sync web assets to iOS and Android projects
-- [ ] Test on iOS simulator (requires macOS + Xcode)
-- [ ] Test on Android emulator (requires Android Studio)
+- [x] iOS setup complete – user to test on macOS + Xcode
+- [x] Android setup complete – user to test with Android Studio
 - [x] Document app store submission process (APP_STORE_GUIDE.md)
