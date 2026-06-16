@@ -97,3 +97,34 @@ describe("perfumes.list", () => {
     expect(Array.isArray(result)).toBe(true);
   });
 });
+
+
+describe("perfumes.submit", () => {
+  it("throws UNAUTHORIZED when user is not authenticated", async () => {
+    const caller = appRouter.createCaller(makeCtx());
+    await expect(
+      caller.perfumes.submit({ name: "Test", brand: "Brand" })
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("allows authenticated users to submit perfumes", async () => {
+    const caller = appRouter.createCaller(makeUserCtx());
+    const result = await caller.perfumes.submit({
+      name: "User Perfume",
+      brand: "User Brand",
+      description: "A user-submitted fragrance",
+      imageUrl: "https://example.com/image.jpg",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("requires name and brand fields", async () => {
+    const caller = appRouter.createCaller(makeUserCtx());
+    await expect(
+      caller.perfumes.submit({ name: "", brand: "Brand" })
+    ).rejects.toThrow();
+    await expect(
+      caller.perfumes.submit({ name: "Name", brand: "" })
+    ).rejects.toThrow();
+  });
+});

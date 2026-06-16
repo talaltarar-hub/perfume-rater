@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { NavBar } from "@/components/NavBar";
 import { ScoreRingInline } from "@/components/ScoreRing";
+import { AddPerfumeModal } from "@/components/AddPerfumeModal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Clock, Star, Sparkles } from "lucide-react";
+import { TrendingUp, Clock, Star, Sparkles, Plus } from "lucide-react";
 
 type SortMode = "top" | "newest";
 
@@ -82,8 +84,10 @@ export default function Home() {
   const [location] = useLocation();
   const initialSort: SortMode = location.includes("sort=top") ? "top" : "newest";
   const [sortBy, setSortBy] = useState<SortMode>(initialSort);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  const { data: perfumes, isLoading } = trpc.perfumes.list.useQuery({ sortBy });
+  const { data: perfumes, isLoading, refetch } = trpc.perfumes.list.useQuery({ sortBy });
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--background)" }}>
@@ -120,7 +124,7 @@ export default function Home() {
       {/* Catalog */}
       <section className="py-12 flex-1">
         <div className="container">
-          {/* Header + Sort */}
+          {/* Header + Sort + Add Button */}
           <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
               <h2
@@ -133,29 +137,41 @@ export default function Home() {
                 {isLoading ? "Loading…" : `${perfumes?.length ?? 0} fragrances`}
               </p>
             </div>
-            <div className="flex items-center gap-2 p-1 rounded-lg border border-border/60 bg-card">
-              <button
-                onClick={() => setSortBy("newest")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  sortBy === "newest"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                Newest
-              </button>
-              <button
-                onClick={() => setSortBy("top")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  sortBy === "top"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <TrendingUp className="w-3.5 h-3.5" />
-                Top Rated
-              </button>
+            <div className="flex items-center gap-2">
+              {isAuthenticated && (
+                <Button
+                  onClick={() => setAddModalOpen(true)}
+                  className="gap-2"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Perfume
+                </Button>
+              )}
+              <div className="flex items-center gap-2 p-1 rounded-lg border border-border/60 bg-card">
+                <button
+                  onClick={() => setSortBy("newest")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    sortBy === "newest"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  Newest
+                </button>
+                <button
+                  onClick={() => setSortBy("top")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    sortBy === "top"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Top Rated
+                </button>
+              </div>
             </div>
           </div>
 
@@ -174,9 +190,15 @@ export default function Home() {
               <h3 className="text-xl font-semibold text-foreground mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
                 No fragrances yet
               </h3>
-              <p className="text-muted-foreground text-sm">
-                The catalog is empty. An admin can add perfumes via the Admin Panel.
+              <p className="text-muted-foreground text-sm mb-6">
+                Be the first to add a perfume to Scentify!
               </p>
+              {isAuthenticated && (
+                <Button onClick={() => setAddModalOpen(true)} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add First Perfume
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -188,6 +210,13 @@ export default function Home() {
           <p>© {new Date().getFullYear()} Scentify. A community for fragrance lovers.</p>
         </div>
       </footer>
+
+      {/* Add Perfume Modal */}
+      <AddPerfumeModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

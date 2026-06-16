@@ -68,3 +68,10 @@
 - [ ] Create Apple Developer account and build iOS archive (user to do on macOS)
 - [ ] Submit Android to Google Play Store (user to do – currently waiting for approval)
 - [ ] Submit iOS to Apple App Store (user to do)
+
+
+## User-Generated Perfumes
+- [x] Add submitPerfume procedure to backend (allow authenticated users)
+- [x] Create "Add Perfume" modal/form in frontend
+- [x] Add "Add Perfume" button to catalog page
+- [x] Test user perfume submission flow

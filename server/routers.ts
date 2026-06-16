@@ -48,6 +48,25 @@ export const appRouter = router({
         const reviews = await getRatingsForPerfume(input.id);
         return { ...perfume, reviews };
       }),
+
+    submit: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(256),
+          brand: z.string().min(1).max(256),
+          description: z.string().max(5000).optional(),
+          imageUrl: z.string().url().optional().or(z.literal("")),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await insertPerfume({
+          name: input.name,
+          brand: input.brand,
+          description: input.description ?? null,
+          imageUrl: input.imageUrl || null,
+        });
+        return { success: true };
+      }),
   }),
 
   ratings: router({
@@ -97,7 +116,6 @@ export const appRouter = router({
           name: input.name,
           brand: input.brand,
           description: input.description ?? null,
-          notes: input.notes ?? null,
           imageUrl: input.imageUrl || null,
         });
         return { success: true };
