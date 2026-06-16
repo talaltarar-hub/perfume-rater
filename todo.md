@@ -62,9 +62,9 @@
 ## App Store Submission Prep
 - [x] Write Capacitor Cloud Build guide for Android (CAPACITOR_CLOUD_BUILD_GUIDE.md)
 - [x] Write iOS App Store submission guide (IOS_APP_STORE_GUIDE.md)
-- [ ] Create app store metadata assets (screenshots, feature graphics)
+- [x] Populate catalog with 10 sample perfumes
 - [ ] Push code to GitHub (user to do)
 - [ ] Set up Capacitor Cloud and build Android AAB (user to do)
 - [ ] Create Apple Developer account and build iOS archive (user to do on macOS)
-- [ ] Submit Android to Google Play Store (user to do)
+- [ ] Submit Android to Google Play Store (user to do – currently waiting for approval)
 - [ ] Submit iOS to Apple App Store (user to do)
