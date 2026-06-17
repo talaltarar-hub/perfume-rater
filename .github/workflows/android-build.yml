@@ -1,0 +1,85 @@
+name: Build Android App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Build web assets
+      run: pnpm build
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 33
+        build-tools-version: '33.0.0'
+
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+
+    - name: Add Android platform
+      run: npx cap add android
+
+    - name: Sync Android
+      run: npx cap sync android
+
+    - name: Build Android App Bundle
+      run: |
+        cd android
+        ./gradlew bundleRelease
+
+    - name: Upload AAB artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release.aab
+        path: android/app/build/outputs/bundle/release/app-release.aab
+
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release ${{ github.run_number }}
+        body: 'Android App Bundle ready for Google Play Store submission'
+        draft: false
+        prerelease: false
+
+    - name: Upload AAB to Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: android/app/build/outputs/bundle/release/app-release.aab
+        asset_name: scentify-${{ github.run_number }}.aab
+        asset_content_type: application/octet-stream
