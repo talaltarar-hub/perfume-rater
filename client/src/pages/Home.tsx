@@ -16,8 +16,18 @@ function PerfumeCard({ perfume }: { perfume: any }) {
   return (
     <Link href={`/perfumes/${perfume.id}`}>
       <div className="luxury-card group cursor-pointer rounded-xl overflow-hidden border border-border/60 bg-card h-full flex flex-col">
-        {/* Text-only card */}
-        <div className="relative p-6 flex flex-col gap-3 flex-1 bg-gradient-to-br from-secondary to-secondary/80 min-h-[300px] justify-center">
+        {/* Image section */}
+        {perfume.imageUrl && (
+          <div className="relative h-[250px] overflow-hidden bg-secondary/20">
+            <img
+              src={perfume.imageUrl}
+              alt={perfume.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        )}
+        {/* Text section */}
+        <div className="relative p-6 flex flex-col gap-3 flex-1 bg-background min-h-[150px] justify-between">
           <div>
             <p className="text-xs font-medium tracking-widest uppercase text-gold-dim mb-2">{perfume.brand}</p>
             <h3
