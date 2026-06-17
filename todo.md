@@ -64,9 +64,9 @@
 - [x] Write iOS App Store submission guide (IOS_APP_STORE_GUIDE.md)
 - [x] Populate catalog with 10 sample perfumes
 - [x] Push code to GitHub (https://github.com/talaltarar-hub/perfume-rater)
-- [ ] Set up Capacitor Cloud and build Android AAB (user to do)
+- [ ] Set up Capacitor Cloud and build Android AAB (waiting for Capacitor Cloud availability)
 - [ ] Create Apple Developer account and build iOS archive (user to do on macOS)
-- [ ] Submit Android to Google Play Store (user to do – currently waiting for approval)
+- [ ] Submit Android to Google Play Store (user to do – waiting for Google Play Console verification)
 - [ ] Submit iOS to Apple App Store (user to do)
 
 
