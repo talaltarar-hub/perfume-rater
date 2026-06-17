@@ -5,6 +5,7 @@ import { NavBar } from "@/components/NavBar";
 import { ScoreRingInline } from "@/components/ScoreRing";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { ProfileRatingForm } from "@/components/ProfileRatingForm";
+import { TopPerfumesSelector } from "@/components/TopPerfumesSelector";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -109,31 +110,7 @@ export default function UserProfile() {
 
           {/* Top 5 Perfumes */}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Top 5 Fragrances
-            </h2>
-
-            {topPerfumesLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 rounded-lg" />
-                ))}
-              </div>
-            ) : topPerfumes && topPerfumes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {topPerfumes.map((item) => (
-                  <Card key={item.id} className="p-4 border-border/60 hover:border-gold-dim transition-colors">
-                    <div className="text-center">
-                      <Badge className="mb-2">{item.position}</Badge>
-                      <h3 className="font-semibold text-foreground text-sm mb-1">{item.perfumeName}</h3>
-                      <p className="text-xs text-muted-foreground">{item.perfumeBrand}</p>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground italic">No top perfumes added yet</p>
-            )}
+            <TopPerfumesSelector userId={numUserId} isOwnProfile={isOwnProfile} />
           </div>
 
           {/* Profile Ratings */}

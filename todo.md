@@ -92,3 +92,7 @@
 - [x] Build profile rating UI (rate user's fragrance choices)
 - [x] Add profile link to navigation and user cards
 - [x] Test all profile features end-to-end
+- [x] Create TopPerfumesSelector component for managing top 5 fragrances
+- [x] Integrate TopPerfumesSelector into UserProfile page
+- [x] Fix profile picture display in NavBar
+- [x] Verify all profile features on live site

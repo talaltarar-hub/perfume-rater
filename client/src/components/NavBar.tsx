@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -17,6 +17,12 @@ import { FlaskConical, Crown } from "lucide-react";
 export function NavBar() {
   const { user, isAuthenticated } = useAuth();
   const [location, navigate] = useLocation();
+
+  // Fetch user profile to get profile picture
+  const { data: profile } = trpc.profiles.getProfile.useQuery(
+    { userId: user?.id || 0 },
+    { enabled: !!user?.id }
+  );
 
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -71,6 +77,9 @@ export function NavBar() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring">
                   <Avatar className="w-8 h-8 border border-border">
+                    {profile?.profileImageUrl && (
+                      <AvatarImage src={profile.profileImageUrl} alt={user?.name || "User"} />
+                    )}
                     <AvatarFallback
                       className="text-xs font-semibold"
                       style={{ background: "oklch(0.22 0.03 70)", color: "var(--gold)" }}
